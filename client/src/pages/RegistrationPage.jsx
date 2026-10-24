@@ -64,18 +64,43 @@ export default function RegistrationPage() {
   const [loading, setLoading] = React.useState(false);
   const [vis, setVis] = React.useState(false);
   const [acceptedTerms, setAcceptedTerms] = React.useState(false);
+  
+  // NEW: Loading and error states for hotspots
   const [hotspots, setHotspots] = React.useState([]);
+  const [hotspotsLoading, setHotspotsLoading] = React.useState(true);
+  const [hotspotsError, setHotspotsError] = React.useState('');
 
   React.useEffect(() => { setTimeout(() => setVis(true), 150); }, []);
 
+  // UPDATED: Robust hotspot fetching with error handling and logging
   React.useEffect(() => {
     const fetchHotspots = async () => {
       try {
+        setHotspotsLoading(true);
+        setHotspotsError('');
+        
         const res = await fetch('https://t-connect-wifi-qr-server.vercel.app/api/hotspots');
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         const data = await res.json();
-        if (data.success) setHotspots(data.data);
+        console.log('Hotspots API Response:', data); // Debug log
+        
+        if (data.success && Array.isArray(data.data)) {
+          setHotspots(data.data);
+        } else if (Array.isArray(data)) {
+          // Fallback in case the API returns the array directly without { success, data }
+          setHotspots(data);
+        } else {
+          throw new Error('Invalid data format from API');
+        }
       } catch (err) {
-        console.error('Failed to load hotspots', err);
+        console.error('Failed to load hotspots:', err);
+        setHotspotsError('Failed to load locations. Please refresh the page.');
+      } finally {
+        setHotspotsLoading(false);
       }
     };
     fetchHotspots();
@@ -168,14 +193,45 @@ export default function RegistrationPage() {
               <TextField fullWidth placeholder={t.register.emailPh} type="email" value={form.email} onChange={set('email')} variant="outlined" size="small" InputProps={{ startAdornment: adornment(EmailIcon) }} sx={inputSx} />
             </Box>
 
+            {/* UPDATED: Hotspot Select with Loading and Error States */}
             <Box sx={{ mb: 3 }}>
               <Typography sx={labelSx}>{t.register.hotspot}</Typography>
               <FormControl fullWidth size="small" error={!!errors.hotspotId}>
-                <Select value={form.hotspotId} onChange={set('hotspotId')} displayEmpty startAdornment={adornment(WifiTetheringIcon)} sx={{ ...selectSx, color: form.hotspotId ? '#FFFFFF' : '#666' }}>
-                  <MenuItem value="" disabled>{t.register.hotspotPh}</MenuItem>
-                  {hotspots.map(spot => <MenuItem key={spot.id} value={spot.id}>{spot.name}</MenuItem>)}
+                <Select 
+                  value={form.hotspotId} 
+                  onChange={set('hotspotId')} 
+                  displayEmpty 
+                  startAdornment={adornment(WifiTetheringIcon)} 
+                  sx={{ ...selectSx, color: form.hotspotId ? '#FFFFFF' : '#666' }}
+                  disabled={hotspotsLoading}
+                >
+                  {hotspotsLoading ? (
+                    <MenuItem value="" disabled>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
+                        <CircularProgress size={16} sx={{ color: '#FF5100' }} />
+                        Loading locations...
+                      </Box>
+                    </MenuItem>
+                  ) : hotspotsError ? (
+                    <MenuItem value="" disabled sx={{ color: '#ff4444' }}>
+                      {hotspotsError}
+                    </MenuItem>
+                  ) : (
+                    <>
+                      <MenuItem value="" disabled>{t.register.hotspotPh}</MenuItem>
+                      {hotspots.map(spot => (
+                        <MenuItem key={spot.id} value={spot.id}>
+                          {spot.name}
+                        </MenuItem>
+                      ))}
+                    </>
+                  )}
                 </Select>
-                {errors.hotspotId && <Typography variant="caption" sx={{ color: '#FF3333', ml: 2, mt: 0.5 }}>{errors.hotspotId}</Typography>}
+                {errors.hotspotId && (
+                  <Typography variant="caption" sx={{ color: '#FF3333', ml: 2, mt: 0.5, display: 'block' }}>
+                    {errors.hotspotId}
+                  </Typography>
+                )}
               </FormControl>
             </Box>
 
@@ -215,7 +271,7 @@ export default function RegistrationPage() {
 
             <Button 
               variant="contained" size="large" onClick={submit} 
-              disabled={loading || !acceptedTerms} 
+              disabled={loading || !acceptedTerms || hotspotsLoading} 
               endIcon={loading ? <CircularProgress size={20} sx={{ color: 'rgba(255,255,255,0.5)' }} /> : <WifiIcon />} 
               sx={{ 
                 width: '100%', py: 1.7, borderRadius: 3, background: '#FF5100', 
