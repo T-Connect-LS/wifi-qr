@@ -56,13 +56,6 @@ export default function LandingPage() {
         }}>
           {/* Brand Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-            
-            <Typography sx={{
-              fontWeight: 800, letterSpacing: '0.08em',
-              color: '#FFFFFF', fontSize: '1.4rem', lineHeight: 1
-            }}>
-              T-CONNECT
-            </Typography>
             <TConnectLogo size={36} />
           </Box>
 
