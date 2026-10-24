@@ -15,7 +15,6 @@ import WifiIcon from '@mui/icons-material/Wifi';
 import BusinessIcon from '@mui/icons-material/Business';
 import TConnectLogo from '../components/TConnectLogo';
 import LanguageToggle from '../components/LanguageToggle';
-import WiFiQRCode from '../components/WiFiQRCode';
 import AppBackground from '../components/AppBackground';
 import { useLang } from '../context/LanguageContext';
 
@@ -42,7 +41,15 @@ export default function SuccessPage() {
         return;
       }
       try {
+        setCredentialsLoading(true);
+        setCredentialsError('');
+        
         const res = await fetch(`https://t-connect-wifi-qr-server.vercel.app/api/hotspot/${hotspotId}`);
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         const data = await res.json();
         console.log('Hotspot Credentials API Response:', data); // Debug log
         
@@ -120,7 +127,20 @@ export default function SuccessPage() {
           <Typography sx={{ color: '#FFFFFF', fontSize: { xs: '1.4rem', sm: '1.8rem' }, fontWeight: 700, lineHeight: 1.2, mb: 0.5 }}>{t.success.connected}</Typography>
           <Typography sx={{ color: 'rgba(255,255,255,0.60)', fontSize: '0.95rem', lineHeight: 1.5, mb: 1 }}>{t.success.authorizing}</Typography>
 
-          {!wifiConfig ? <CircularProgress size={24} sx={{ color: '#FF5100', mb: 4 }} /> : (
+          {credentialsLoading ? (
+            <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <CircularProgress size={32} sx={{ color: '#FF5100' }} />
+              <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Loading network details...</Typography>
+            </Box>
+          ) : credentialsError ? (
+            <Paper elevation={0} sx={{ width: '100%', mb: 3, p: 3, bgcolor: 'rgba(255, 68, 68, 0.1)', border: '1px solid rgba(255, 68, 68, 0.3)', borderRadius: 3 }}>
+              <Typography sx={{ color: '#ff4444', fontSize: '0.9rem', fontWeight: 600 }}>{credentialsError}</Typography>
+            </Paper>
+          ) : !wifiConfig ? (
+            <Paper elevation={0} sx={{ width: '100%', mb: 3, p: 3, bgcolor: 'rgba(255, 68, 68, 0.1)', border: '1px solid rgba(255, 68, 68, 0.3)', borderRadius: 3 }}>
+              <Typography sx={{ color: '#ff4444', fontSize: '0.9rem', fontWeight: 600 }}>Network configuration not found.</Typography>
+            </Paper>
+          ) : (
             <Paper elevation={0} sx={{ width: '100%', mb: 3, bgcolor: 'rgba(0,0,0,0.60)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden', backdropFilter: 'blur(20px)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, py: 2.5 }}>
                 <Box sx={{ textAlign: 'left' }}>
