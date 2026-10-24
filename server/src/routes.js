@@ -4,7 +4,8 @@ const { createVisitor } = require('./model');
 
 router.post('/register', async (req, res) => {
   try {
-    const { fullName, connectReason, phone, email, knowsTConnect } = req.body;
+    // Added 'location' to destructuring
+    const { fullName, connectReason, phone, email, location, knowsTConnect } = req.body;
 
     if (!fullName || fullName.trim() === '') {
       return res.status(400).json({ success: false, error: 'Full name is required' });
@@ -23,7 +24,7 @@ router.post('/register', async (req, res) => {
       business: connectReason || null,
       phone: phone.trim(),
       email: email ? email.trim() : null,
-      area: null, // Removed hotspotId
+      area: location || 'Green City', // ✅ Saves "Green City" to the database
       useCase: knowsTConnect === 'yes' ? 'business' : 'home' 
     });
 
@@ -53,8 +54,6 @@ router.post('/register', async (req, res) => {
     });
   }
 });
-
-// Removed /hotspots and /hotspot/:id routes
 
 router.get('/config', (req, res) => {
   res.json({

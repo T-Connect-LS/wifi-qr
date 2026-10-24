@@ -22,6 +22,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import InterestsIcon from '@mui/icons-material/Interests';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
+import WifiTetheringIcon from '@mui/icons-material/WifiTethering'; // Added back
 import CheckIcon from '@mui/icons-material/Check';
 import WifiIcon from '@mui/icons-material/Wifi';
 import AppBackground from '../components/AppBackground';
@@ -55,10 +56,10 @@ export default function RegistrationPage() {
     t.register.rResearch, t.register.rSocialMedia, t.register.rVideo
   ];
 
-  // Removed hotspotId from form state
+  // Added location with hardcoded default
   const [form, setForm] = React.useState({
     fullName: '', connectReason: '', phone: '',
-    email: '', knowsTConnect: 'no'
+    email: '', location: 'Green City', knowsTConnect: 'no'
   });
   const [errors, setErrors] = React.useState({});
   const [loading, setLoading] = React.useState(false);
@@ -93,7 +94,6 @@ export default function RegistrationPage() {
       });
       const data = await res.json();
       if (data.success) {
-        // Removed hotspotId from state
         navigate(`/success${window.location.search}`, { 
           state: { formData: data.data, knowsTConnect: form.knowsTConnect } 
         });
@@ -155,7 +155,21 @@ export default function RegistrationPage() {
               <TextField fullWidth placeholder={t.register.emailPh} type="email" value={form.email} onChange={set('email')} variant="outlined" size="small" InputProps={{ startAdornment: adornment(EmailIcon) }} sx={inputSx} />
             </Box>
 
-            {/* Hotspot Select Box Completely Removed */}
+            {/* ✅ HARDCODED LOCATION DROPDOWN */}
+            <Box sx={{ mb: 3 }}>
+              <Typography sx={labelSx}>Location</Typography>
+              <FormControl fullWidth size="small">
+                <Select 
+                  value={form.location} 
+                  displayEmpty 
+                  startAdornment={adornment(WifiTetheringIcon)} 
+                  sx={{ ...selectSx, color: '#FFFFFF' }}
+                  disabled // Optional: keeps it locked to "Green City"
+                >
+                  <MenuItem value="Green City">Green City</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
 
             <Box sx={{ mb: 3 }}>
               <Typography sx={labelSx}>{t.register.knowsTConnect}</Typography>
