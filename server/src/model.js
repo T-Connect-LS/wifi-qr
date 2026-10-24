@@ -28,17 +28,6 @@ const initDatabase = async () => {
       );
     `);
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS hotspots (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        name VARCHAR(100) NOT NULL,
-        ssid VARCHAR(100) NOT NULL,
-        password VARCHAR(100) NOT NULL,
-        security VARCHAR(20) DEFAULT 'WPA2',
-        venue VARCHAR(100)
-      );
-    `);
-
     console.log('PostgreSQL: tables verified/created');
   } catch (err) {
     console.error('===== DATABASE INIT ERROR =====');
@@ -75,20 +64,10 @@ const getVisitors = async () => {
   return result.rows;
 };
 
-const getHotspots = async () => {
-  const result = await pool.query('SELECT id, name FROM hotspots ORDER BY name;');
-  return result.rows;
-};
-
-const getHotspotCredentials = async (id) => {
-  const result = await pool.query('SELECT ssid, password, security, venue FROM hotspots WHERE id = $1;', [id]);
-  return result.rows[0];
-};
+// Removed getHotspots and getHotspotCredentials
 
 module.exports = {
   initDatabase,
   createVisitor,
-  getVisitors,
-  getHotspots,
-  getHotspotCredentials
+  getVisitors
 };

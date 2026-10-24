@@ -1,16 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { createVisitor, getHotspots, getHotspotCredentials } = require('./model');
-
-console.log('===== WIFI CONFIG LOADED =====');
-console.log('SSID:', process.env.WIFI_SSID);
-console.log('Security:', process.env.WIFI_SECURITY);
-console.log('==============================');
+const { createVisitor } = require('./model');
 
 router.post('/register', async (req, res) => {
   try {
-    // Destructure knowsTConnect instead of useCase
-    const { fullName, connectReason, phone, email, hotspotId, knowsTConnect } = req.body;
+    const { fullName, connectReason, phone, email, knowsTConnect } = req.body;
 
     if (!fullName || fullName.trim() === '') {
       return res.status(400).json({ success: false, error: 'Full name is required' });
@@ -29,8 +23,7 @@ router.post('/register', async (req, res) => {
       business: connectReason || null,
       phone: phone.trim(),
       email: email ? email.trim() : null,
-      area: hotspotId || null,
-      // Map 'yes'/'no' to 'business'/'home' to satisfy DB constraint
+      area: null, // Removed hotspotId
       useCase: knowsTConnect === 'yes' ? 'business' : 'home' 
     });
 
@@ -43,7 +36,7 @@ router.post('/register', async (req, res) => {
         business: visitor.business,
         useCase: visitor.use_case,
         connectedAt: visitor.connected_at,
-        knowsTConnect: knowsTConnect // Pass it back to the frontend
+        knowsTConnect: knowsTConnect
       }
     });
 
@@ -61,28 +54,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.get('/hotspots', async (req, res) => {
-  try {
-    const hotspots = await getHotspots();
-    res.json({ success: true, data: hotspots });
-  } catch (error) {
-    console.error('Error fetching hotspots:', error.message);
-    res.status(500).json({ success: false, error: 'Failed to fetch hotspots' });
-  }
-});
-
-router.get('/hotspot/:id', async (req, res) => {
-  try {
-    const credentials = await getHotspotCredentials(req.params.id);
-    if (!credentials) {
-      return res.status(404).json({ success: false, error: 'Hotspot not found' });
-    }
-    res.json({ success: true, data: credentials });
-  } catch (error) {
-    console.error('Error fetching hotspot credentials:', error.message);
-    res.status(500).json({ success: false, error: 'Failed to fetch credentials' });
-  }
-});
+// Removed /hotspots and /hotspot/:id routes
 
 router.get('/config', (req, res) => {
   res.json({
